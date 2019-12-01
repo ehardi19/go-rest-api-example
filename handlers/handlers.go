@@ -25,6 +25,7 @@ func NewRouter(platform *services.Services) *gin.Engine {
 	book := router.Group("/book")
 	book.GET("/", h.GetAllBooks)
 	book.GET("/:id", h.GetBook)
+	book.POST("/", h.CreateBook)
 	book.PUT("/:id", h.UpdateBook)
 	book.DELETE("/:id", h.DeleteBook)
 
@@ -39,7 +40,6 @@ func (h *Handlers) HelloWorld(ctx *gin.Context) {
 
 func (h *Handlers) GetAllBooks(ctx *gin.Context) {
 	var response Response
-	ctx.Header("Content-Type", "application/json")
 
 	books, err := h.Platform.GetAllBooks()
 	if err != nil {
@@ -57,7 +57,6 @@ func (h *Handlers) GetAllBooks(ctx *gin.Context) {
 
 func (h *Handlers) GetBook(ctx *gin.Context) {
 	var response Response
-	ctx.Header("Content-Type", "application/json")
 	id := ctx.Param("id")
 
 	book, err := h.Platform.GetBook(id)
@@ -131,18 +130,16 @@ func (h *Handlers) UpdateBook(ctx *gin.Context) {
 
 func (h *Handlers) DeleteBook(ctx *gin.Context) {
 	var response Response
-	ctx.Header("Content-Type", "application/json")
 	id := ctx.Param("id")
 
-	book, err := h.Platform.DeleteBook(id)
-	if err != nil {
+	if err := h.Platform.DeleteBook(id); err != nil {
 		response.Data = err.Error()
 		response.Status = http.StatusInternalServerError
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	response.Data = book
+	response.Data = nil
 	response.Status = http.StatusOK
 
 	ctx.JSON(http.StatusOK, response)
